@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { applyAction, executeSequence } from "./engine";
-import { clawMachineLevel } from "./level";
+import { calibrationLevel, clawMachineLevel } from "./level";
+import { allProjections, diffProjection } from "./projection";
 import { createInitialState } from "./state";
 import type { LevelDefinition } from "./types";
 
@@ -14,6 +15,17 @@ describe("Claw Machine simulation", () => {
     expect(result.state.currentPlayerView).toBe("XY");
     expect(result.state.completed).toBe(true);
     expect(eventTypes).toContain("level_completed");
+  });
+
+  it("completes the second registered level through its authored solution", () => {
+    const result = executeSequence(
+      calibrationLevel,
+      calibrationLevel.canonicalSolution,
+      calibrationLevel.seed,
+    );
+
+    expect(result.state.keysDelivered).toEqual(["cal-key-1", "cal-key-2", "cal-key-3"]);
+    expect(result.state.completed).toBe(true);
   });
 
   it("replays the same seed and action sequence identically", () => {
@@ -31,7 +43,51 @@ describe("Claw Machine simulation", () => {
 
     expect(result.state.clawPosition).toEqual({ x: 0, y: 0, z: 6 });
     expect(result.events.some((event) => event.type === "claw_move_blocked")).toBe(true);
-    expect(result.botMessages.bot_a.join(" ")).toContain("did not move sideways");
+    expect(result.botMessages.bot_a.join(" ")).toContain("did not move on my screen");
+  });
+
+  it.each([
+    {
+      actor: "player" as const,
+      view: "XZ" as const,
+      axis: "y" as const,
+      expected: { XZ: [0, 0], YZ: [1, 0], XY: [0, 1] } as const,
+    },
+    {
+      actor: "bot_a" as const,
+      view: "YZ" as const,
+      axis: "x" as const,
+      expected: { XZ: [1, 0], YZ: [0, 0], XY: [1, 0] } as const,
+    },
+    {
+      actor: "bot_b" as const,
+      view: "XY" as const,
+      axis: "z" as const,
+      expected: { XZ: [0, 1], YZ: [0, 1], XY: [0, 0] } as const,
+    },
+  ])("moves only on the axis hidden by $view", ({ actor, view, axis, expected }) => {
+    const state = createInitialState(clawMachineLevel);
+    state.clawPosition = { x: 4, y: 4, z: 2 };
+    const before = allProjections(state);
+    const result = applyAction(state, { actor, command: "RIGHT" }, clawMachineLevel);
+    const after = result.projections;
+
+    expect(result.events.find((event) => event.type === "claw_move")?.details?.axis).toBe(axis);
+    expect(after[view].claw.horizontal).toBe(before[view].claw.horizontal);
+    expect(after[view].claw.vertical).toBe(before[view].claw.vertical);
+    const ownViewDiff = diffProjection(before[view], after[view]);
+    expect(ownViewDiff.movedObjects).toHaveLength(0);
+    expect(ownViewDiff.clawMovedHorizontally).toBe(0);
+    expect(ownViewDiff.clawMovedVertically).toBe(0);
+    for (const projectionView of ["XZ", "YZ", "XY"] as const) {
+      const [horizontalDelta, verticalDelta] = expected[projectionView];
+      expect(after[projectionView].claw.horizontal - before[projectionView].claw.horizontal).toBe(
+        horizontalDelta,
+      );
+      expect(after[projectionView].claw.vertical - before[projectionView].claw.vertical).toBe(
+        verticalDelta,
+      );
+    }
   });
 
   it("supports a future level definition without engine changes", () => {
@@ -45,6 +101,6 @@ describe("Claw Machine simulation", () => {
     const result = applyAction(state, { actor: "player", command: "RIGHT" }, futureLevel);
 
     expect(result.state.levelId).toBe("future-level");
-    expect(result.state.clawPosition.x).toBe(1);
+    expect(result.state.clawPosition.y).toBe(1);
   });
 });

@@ -17,8 +17,12 @@ export const generateBotObservations = (diff: ProjectionDiff, botView: ViewId): 
     messages.push("The claw moved right on my screen.");
   } else if (diff.clawMovedHorizontally < 0) {
     messages.push("The claw moved left on my screen.");
+  } else if (diff.clawMovedVertically > 0) {
+    messages.push("The claw moved up on my screen.");
+  } else if (diff.clawMovedVertically < 0) {
+    messages.push("The claw moved down on my screen.");
   } else {
-    messages.push("The claw did not move sideways from where I am looking.");
+    messages.push("The claw did not move on my screen.");
   }
 
   if (diff.objectGrabbed) messages.push(describeGrab(diff.objectGrabbed));

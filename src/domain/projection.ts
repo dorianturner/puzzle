@@ -120,8 +120,8 @@ export const projectToXZ = (state: ClawMachineState): Projection => project(stat
 export const projectToYZ = (state: ClawMachineState): Projection => project(state, "YZ");
 export const projectToXY = (state: ClawMachineState): Projection => project(state, "XY");
 
-const samePosition = (a: ProjectedItem, b: ProjectedItem): boolean =>
-  a.horizontal === b.horizontal && a.vertical === b.vertical && a.depth === b.depth;
+const sameScreenPosition = (a: ProjectedItem, b: ProjectedItem): boolean =>
+  a.horizontal === b.horizontal && a.vertical === b.vertical;
 
 /** Compare two projections without consulting hidden world coordinates. */
 export const diffProjection = (previous: Projection, current: Projection): ProjectionDiff => {
@@ -136,7 +136,12 @@ export const diffProjection = (previous: Projection, current: Projection): Proje
     if (!previousItem) continue;
     if (!previousItem.visible && currentItem.visible) becameVisible.push(currentItem);
     if (previousItem.visible && !currentItem.visible) becameHidden.push(currentItem);
-    if (!samePosition(previousItem, currentItem) && !currentItem.delivered) {
+    const visibleInEitherState = previousItem.visible || currentItem.visible;
+    if (
+      !sameScreenPosition(previousItem, currentItem) &&
+      visibleInEitherState &&
+      !currentItem.delivered
+    ) {
       movedObjects.push(currentItem);
     }
   }

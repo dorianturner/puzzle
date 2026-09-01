@@ -5,25 +5,53 @@ test.describe("Perspective gameplay", () => {
   test("opens the authored level from the minimal menu", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByTestId("menu-screen")).toBeVisible();
-    await page.getByTestId("play-button").click();
+    await expect(page.getByTestId("menu-screen")).not.toContainText("Infer depth");
+    await page.getByTestId("play-button").first().click();
     await expect(page.getByTestId("game-screen")).toBeVisible();
+    await expect(page.getByTestId("game-screen")).not.toContainText("SIDE VIEW");
     await expect(page.getByTestId("game-canvas")).toBeVisible();
+    await expect(page.locator(".controls-strip")).toBeVisible();
     await expect(page.getByTestId("key-counter")).toHaveText("0 / 3");
   });
 
-  test("accepts a text alias and reports both bot observations", async ({ page }) => {
+  test("uses explicit bot controls and reports both bot observations", async ({ page }) => {
     await page.goto("/");
-    await page.getByTestId("play-button").click();
-    await page.getByTestId("bot-command-input").fill("move right");
-    await page.getByTestId("bot-command-form").press("Enter");
+    await page.getByTestId("play-button").first().click();
+    await page.getByTestId("bot-right").click();
 
     await expect(page.getByTestId("bot-a-message").last()).toContainText("claw");
     await expect(page.getByTestId("bot-b-message").last()).toContainText("claw");
   });
 
+  test("keeps hidden-axis player movement visually still", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("play-button").first().click();
+    await page.getByTestId("move-right").click();
+
+    await expect(page.locator(".viewport-panel")).not.toHaveClass(/is-transitioning/);
+    const state = await page.evaluate(() => window.__PERSPECTIVE__?.getState());
+    expect(state?.clawPosition).toEqual({ x: 0, y: 1, z: 6 });
+  });
+
+  test("navigates between registry levels and returns to level select", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByTestId("play-button")).toHaveCount(2);
+    await page.getByTestId("play-button").first().click();
+    await expect(page.getByTestId("level-title")).toHaveText("CLAW MACHINE");
+    await expect(page.getByTestId("previous-level")).toBeDisabled();
+    await page.getByTestId("next-level").click();
+    await expect(page.getByTestId("level-title")).toHaveText("CALIBRATION BAY");
+    await expect(page.getByTestId("previous-level")).toBeEnabled();
+    await expect(page.getByTestId("next-level")).toBeDisabled();
+    await page.getByTestId("previous-level").click();
+    await expect(page.getByTestId("level-title")).toHaveText("CLAW MACHINE");
+    await page.getByTestId("return-menu").click();
+    await expect(page.getByTestId("menu-screen")).toBeVisible();
+  });
+
   test("completes the canonical solution through the debug API", async ({ page }) => {
     await page.goto("/?debug=1");
-    await page.getByTestId("play-button").click();
+    await page.getByTestId("play-button").first().click();
     const finalState = await page.evaluate((actions) => {
       const api = window.__PERSPECTIVE__;
       if (!api) throw new Error("Perspective debug API is unavailable");
@@ -40,7 +68,7 @@ test.describe("Perspective gameplay", () => {
 
   test("resets the state and exposes projections for automated inspection", async ({ page }) => {
     await page.goto("/?debug=1");
-    await page.getByTestId("play-button").click();
+    await page.getByTestId("play-button").first().click();
     await expect(page.getByTestId("debug-overlay")).toBeVisible();
     await page.keyboard.press("`");
     await expect(page.getByTestId("debug-overlay")).toBeHidden();

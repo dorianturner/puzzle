@@ -20,15 +20,15 @@ input -> parse/validate -> applyAction -> projections -> bot observations -> UI 
 
 ## Levels
 
-`LevelDefinition` contains machine bounds, chute and claw starts, object data, initial view assignments, view unlocks, and a canonical test solution. `LEVELS` is the menu registry. The current engine has no branch for `claw-machine`; it consumes generic level data.
+`LevelDefinition` contains machine bounds, chute and claw starts, object data, initial view assignments, view unlocks, and a canonical test solution. `LEVELS` is the menu registry for Claw Machine and Calibration Bay. Previous/next navigation consumes this registry, and the engine has no level-specific branches.
 
-Grid positions are integers. A movement at a boundary is a deterministic no-op with a `claw_move_blocked` event. Grab candidates are sorted by configured priority, descending height, then ID. A key is delivered only when a held key is released at the chute.
+Grid positions are integers. `XZ` controls Y, `YZ` controls X, and `XY` controls Z: each actor controls the axis collapsed by that actor's view. A movement at a boundary is a deterministic no-op with a `claw_move_blocked` event. Grab candidates are sorted by configured priority, descending height, then ID. A key is delivered only when a held key is released at the chute.
 
 ## Presentation
 
-The DOM provides the menu, controls, chat, status, and accessible labels. Canvas renders the current player projection and pixel-art primitives with smoothing disabled. The `public/assets/pixel/sprite-sheet.png` file is the committed art reference for future sprite extraction; the renderer has a deterministic code-drawn fallback so missing image loading cannot affect gameplay.
+The DOM provides the menu, explicit operator controls, read-only bot feed, status, and accessible labels. Canvas renders the current player projection and pixel-art primitives with smoothing disabled. The `public/assets/pixel/sprite-sheet.png` file is the committed art reference for future sprite extraction; the renderer has a deterministic code-drawn fallback so missing image loading cannot affect gameplay.
 
-The default perspective transition is 600 ms. Simulation state changes before the transition begins, and reduced-motion preferences shorten the visual transition.
+The default perspective transition is 600 ms and runs only when the active projection visibly changes or the player unlocks a new view. Simulation state changes before the transition begins, and reduced-motion preferences shorten the visual transition.
 
 ## Telemetry and debug API
 

@@ -5,14 +5,15 @@ import {
   cloneState,
   commandFromDirection,
   createEventStore,
+  diffProjection,
   getLevel,
   initialActionResult,
   LEVELS,
   type Action,
   type ClawMachineState,
-  type Command,
   type EventStore,
   type LevelDefinition,
+  type Projection,
   type ViewId,
 } from "./domain";
 import { drawDebugWorld, drawProjection } from "./rendering/canvas";
@@ -25,7 +26,7 @@ interface ChatMessage {
 let sessionNumber = 0;
 
 const viewName = (view: ViewId): string =>
-  view === "XZ" ? "SIDE VIEW (XZ)" : view === "YZ" ? "SIDE VIEW (YZ)" : "TOP VIEW (XY)";
+  view === "XZ" ? "VIEW A" : view === "YZ" ? "VIEW B" : "VIEW C";
 
 const escapeHtml = (value: string): string =>
   value
@@ -34,8 +35,8 @@ const escapeHtml = (value: string): string =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 
-const button = (label: string, testId: string, className = "button"): string =>
-  `<button class="${className}" data-testid="${testId}" type="button">${label}</button>`;
+const button = (label: string, testId: string, className = "button", disabled = false): string =>
+  `<button class="${className}" data-testid="${testId}"${disabled ? " disabled" : ""} type="button">${label}</button>`;
 
 export class PerspectiveApp {
   private readonly root: HTMLElement;
@@ -88,7 +89,6 @@ export class PerspectiveApp {
               <button class="level-card" data-testid="play-button" data-level-id="${level.id}" type="button">
                 <span class="level-card-number">${String(level.number).padStart(2, "0")}</span>
                 <strong>${escapeHtml(level.title)}</strong>
-                <span class="level-card-art" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
                 <span class="level-card-play">PLAY <b>›</b></span>
               </button>
             `,
@@ -118,59 +118,68 @@ export class PerspectiveApp {
     this.renderGame();
   }
 
+  private currentLevelIndex(): number {
+    return LEVELS.findIndex((level) => level.id === this.level.id);
+  }
+
+  private isFirstLevel(): boolean {
+    return this.currentLevelIndex() <= 0;
+  }
+
+  private isLastLevel(): boolean {
+    return this.currentLevelIndex() === LEVELS.length - 1;
+  }
+
+  private navigateLevel(direction: -1 | 1): void {
+    const nextLevel = LEVELS[this.currentLevelIndex() + direction];
+    if (nextLevel) this.startLevel(nextLevel);
+  }
+
   private renderGame(): void {
     const state = this.result.state;
     this.root.innerHTML = `
       <main class="game-shell" data-testid="game-screen">
         <header class="game-header">
-          <div>
-            <p class="eyebrow">PERSPECTIVE / ${String(this.level.number).padStart(2, "0")}</p>
-            <h1>${escapeHtml(this.level.title)}</h1>
+          <div class="header-brand" aria-hidden="true"><span class="header-cube">◇</span><span>PERSPECTIVE</span></div>
+          <div class="header-title">
+            <p class="eyebrow">LEVEL ${String(this.level.number).padStart(2, "0")}</p>
+            <h1 data-testid="level-title">${escapeHtml(this.level.title)}</h1>
           </div>
-          <div class="header-status"><span>KEYS</span><strong data-testid="key-counter">${state.keysDelivered.length} / 3</strong></div>
+          <div class="header-status"><span class="key-icon" aria-hidden="true">⚿</span><span>KEYS</span><strong data-testid="key-counter">${state.keysDelivered.length} / 3</strong></div>
         </header>
         <div class="game-grid">
-          <aside class="controls-panel panel">
-            <p class="panel-label">CONTROLS</p>
-            <p class="view-label">${viewName(state.currentPlayerView)}</p>
-            ${button("◀", "move-left", "control-button")}
-            ${button("▶", "move-right", "control-button")}
-            <div class="control-spacer"></div>
-            ${button("RESET LEVEL", "reset-level", "button secondary")}
-            ${button("UNDO", "undo-action", "button secondary")}
-            ${button("MENU", "return-menu", "button text-button")}
-          </aside>
-          <section class="viewport-panel panel">
-            <canvas aria-label="Pixel art claw machine view" data-testid="game-canvas" height="520" width="680"></canvas>
-            <p class="viewport-caption">${state.completed ? "LEVEL COMPLETE" : "Experiment with the views."}</p>
+          <section class="game-main-column">
+            <section class="viewport-panel panel">
+              <div class="viewport-heading"><span class="live-dot"></span><strong>${viewName(state.currentPlayerView)}</strong><span class="view-rule"></span><small>LIVE PROJECTION</small></div>
+              <canvas aria-label="Pixel art claw machine view" data-testid="game-canvas" height="520" width="880"></canvas>
+              <p class="viewport-caption">${state.completed ? "LEVEL COMPLETE" : "AUTHORITATIVE MACHINE / OBSERVATION FEED"}</p>
+            </section>
+            <section class="controls-panel panel">
+              <div class="controls-heading"><span class="panel-label">OPERATORS</span><span class="controls-hint">DISCRETE INPUT / NO TIME LIMIT</span></div>
+              <div class="controls-strip">
+                ${this.renderControlGroup("YOU", "YOU", "player", "control-you")}
+                ${this.renderControlGroup("BOT A", "A", "bot_a", "control-bot-a")}
+                ${this.renderControlGroup("BOT B", "B", "bot_b", "control-bot-b")}
+              </div>
+              <div class="control-footer">
+                <nav class="level-navigation" aria-label="Level navigation">
+                  ${button("← PREV LEVEL", "previous-level", "button secondary", this.isFirstLevel())}
+                  ${button("NEXT LEVEL →", "next-level", "button secondary", this.isLastLevel())}
+                </nav>
+                <div class="control-footer-actions">
+                  ${button("RESET LEVEL", "reset-level", "button secondary")}
+                  ${button("UNDO", "undo-action", "button secondary")}
+                  ${button("LEVEL SELECT", "return-menu", "button text-button")}
+                </div>
+              </div>
+            </section>
           </section>
           <aside class="chat-panel panel">
-            <p class="panel-label">BOT CHAT</p>
-            <div class="bot-selector">
-              ${button("BOT A", "bot-a-selector", `bot-tab ${this.selectedBot === "bot_a" ? "active" : ""}`)}
-              ${button("BOT B", "bot-b-selector", `bot-tab ${this.selectedBot === "bot_b" ? "active" : ""}`)}
-            </div>
+            <div class="chat-heading"><div><p class="panel-label">BOT CHAT</p><span class="chat-subtitle">REMOTE OBSERVATIONS</span></div><span class="chat-live"><i></i>LIVE</span></div>
             <div class="chat-log" data-testid="bot-chat">
-              ${this.messages
-                .map(
-                  (message) => `
-                <div class="chat-message ${message.actor}" data-testid="${message.actor === "system" ? "system-message" : `${message.actor.replace("_", "-")}-message`}">
-                  <span class="message-actor">${message.actor === "system" ? "SYSTEM" : message.actor.replace("_", " ").toUpperCase()}</span>
-                  <span>${escapeHtml(message.text)}</span>
-                </div>
-              `,
-                )
-                .join("")}
+              ${this.messages.length === 0 ? '<div class="chat-empty">WAITING FOR OBSERVATION<br /><span>BOT FEEDS WILL APPEAR AFTER AN ACTION</span></div>' : this.messages.map((message, index) => this.renderChatMessage(message, index)).join("")}
             </div>
-            <div class="quick-actions">
-              ${button("LEFT", "bot-left", "button quick-button")}
-              ${button("RIGHT", "bot-right", "button quick-button")}
-              ${button("GRAB", "bot-grab", "button quick-button accent")}
-            </div>
-            <form class="command-form" data-testid="bot-command-form">
-              <label for="bot-command-input">COMMAND ${this.selectedBot === "bot_a" ? "BOT A" : "BOT B"}</label>
-              <div class="command-row"><input autocomplete="off" id="bot-command-input" data-testid="bot-command-input" placeholder="try: move left" /><button class="send-button" type="submit">↵</button></div>
-            </form>
+            <div class="chat-footer"><span>FEED STATUS</span><strong>${this.messages.length ? `${this.messages.length} OBSERVATIONS` : "NO EVENTS"}</strong></div>
           </aside>
         </div>
         ${
@@ -193,6 +202,38 @@ export class PerspectiveApp {
     if (canvas)
       drawProjection(canvas, this.result.projections[state.currentPlayerView], this.level);
     this.renderDebugCanvas(state);
+    this.scrollChatToLatest();
+  }
+
+  private renderControlGroup(
+    label: string,
+    avatar: string,
+    actor: "player" | "bot_a" | "bot_b",
+    className: string,
+  ): string {
+    const prefix = actor === "player" ? "player" : actor === "bot_a" ? "bot" : "bot-b";
+    return `
+      <section class="control-group ${className}">
+        <div class="control-group-heading"><span class="bot-avatar">${avatar}</span><strong>${label}</strong><span class="operator-state">READY</span></div>
+        <div class="control-actions">
+          ${button("<b>←</b><span>LEFT</span>", actor === "player" ? "move-left" : `${prefix}-left`, "operator-button")}
+          ${button("<b>→</b><span>RIGHT</span>", actor === "player" ? "move-right" : `${prefix}-right`, "operator-button")}
+          ${button("<b>⌁</b><span>GRAB</span>", actor === "player" ? "player-grab" : `${prefix}-grab`, "operator-button grab-button")}
+        </div>
+      </section>
+    `;
+  }
+
+  private renderChatMessage(message: ChatMessage, index: number): string {
+    const actor = message.actor === "bot_a" ? "BOT A" : "BOT B";
+    const actorClass = message.actor === "bot_a" ? "bot-a" : "bot-b";
+    const testId = message.actor === "bot_a" ? "bot-a-message" : "bot-b-message";
+    return `
+      <article class="chat-message ${actorClass}" data-testid="${testId}">
+        <div class="bot-avatar message-avatar">${message.actor === "bot_a" ? "A" : "B"}</div>
+        <div class="message-content"><div class="message-meta"><strong>${actor}</strong><time>10:${String(24 + Math.floor(index / 3)).padStart(2, "0")}:${String(31 + index).padStart(2, "0")}</time></div><p>${escapeHtml(message.text)}</p></div>
+      </article>
+    `;
   }
 
   private renderDebug(state: ClawMachineState): string {
@@ -232,51 +273,25 @@ export class PerspectiveApp {
     this.onClick("move-right", () =>
       this.dispatch({ actor: "player", command: commandFromDirection("right") }),
     );
+    this.onClick("player-grab", () => this.dispatch({ actor: "player", command: "GRAB" }));
     this.onClick("reset-level", () => this.resetLevel());
     this.onClick("undo-action", () => this.undo());
     this.onClick("return-menu", () => this.renderMenu());
+    this.onClick("previous-level", () => this.navigateLevel(-1));
+    this.onClick("next-level", () => this.navigateLevel(1));
     this.onClick("complete-menu", () => this.renderMenu());
     this.onClick("replay-level", () => this.startLevel(this.level));
-    this.onClick("bot-a-selector", () => {
-      this.selectedBot = "bot_a";
-      this.renderGame();
-    });
-    this.onClick("bot-b-selector", () => {
-      this.selectedBot = "bot_b";
-      this.renderGame();
-    });
-    const quickCommands: Record<string, Command> = {
-      "bot-left": "LEFT",
-      "bot-right": "RIGHT",
-      "bot-grab": "GRAB",
+    const botActions: Record<string, Action> = {
+      "bot-left": { actor: "bot_a", command: "LEFT" },
+      "bot-right": { actor: "bot_a", command: "RIGHT" },
+      "bot-grab": { actor: "bot_a", command: "GRAB" },
+      "bot-b-left": { actor: "bot_b", command: "LEFT" },
+      "bot-b-right": { actor: "bot_b", command: "RIGHT" },
+      "bot-b-grab": { actor: "bot_b", command: "GRAB" },
     };
-    for (const [testId, command] of Object.entries(quickCommands)) {
-      this.onClick(testId, () => this.dispatch({ actor: this.selectedBot, command }));
+    for (const [testId, action] of Object.entries(botActions)) {
+      this.onClick(testId, () => this.dispatch(action));
     }
-    const form = this.root.querySelector<HTMLFormElement>("[data-testid='bot-command-form']");
-    form?.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const input = this.root.querySelector<HTMLInputElement>("[data-testid='bot-command-input']");
-      if (!input) return;
-      const command = parseCommand(input.value);
-      if (!command) {
-        this.messages.push({
-          actor: "system",
-          text: `Command rejected: ${input.value.trim() || "empty input"}.`,
-        });
-        this.eventStore.record([
-          {
-            type: "command_rejected",
-            actionIndex: this.result.state.actionCount + 1,
-            details: { reason: "unrecognized_text" },
-          },
-        ]);
-        this.renderGame();
-        return;
-      }
-      input.value = "";
-      this.dispatch({ actor: this.selectedBot, command });
-    });
     this.onClick("export-events", () => {
       const blob = new Blob([this.eventStore.exportJson()], { type: "application/json" });
       const link = document.createElement("a");
@@ -295,6 +310,8 @@ export class PerspectiveApp {
 
   private dispatch(action: Action): void {
     if (this.result.state.completed) return;
+    const previousView = this.result.state.currentPlayerView;
+    const previousProjection = this.result.projections[previousView];
     this.undoStack.push(cloneState(this.result.state));
     const result = applyAction(this.result.state, action, this.level);
     this.result = result;
@@ -302,10 +319,20 @@ export class PerspectiveApp {
     if (import.meta.env.DEV) {
       for (const event of recorded) console.info("[perspective]", event);
     }
-    for (const text of result.botMessages.bot_a) this.messages.push({ actor: "bot_a", text });
-    for (const text of result.botMessages.bot_b) this.messages.push({ actor: "bot_b", text });
+    const messageCount = Math.max(result.botMessages.bot_a.length, result.botMessages.bot_b.length);
+    for (let index = 0; index < messageCount; index += 1) {
+      const botAMessage = result.botMessages.bot_a[index];
+      const botBMessage = result.botMessages.bot_b[index];
+      if (botAMessage !== undefined) this.messages.push({ actor: "bot_a", text: botAMessage });
+      if (botBMessage !== undefined) this.messages.push({ actor: "bot_b", text: botBMessage });
+    }
     this.renderGame();
-    this.animateViewport();
+    const playerViewChanged = previousView !== result.state.currentPlayerView;
+    const projectionChanged = this.projectionHasVisibleChange(
+      previousProjection,
+      result.projections[result.state.currentPlayerView],
+    );
+    if (playerViewChanged || projectionChanged) this.animateViewport();
   }
 
   private resetLevel(): void {
@@ -314,7 +341,7 @@ export class PerspectiveApp {
     ]);
     this.result = initialActionResult(this.level, this.result.state.seed);
     this.undoStack.length = 0;
-    this.messages = [{ actor: "system", text: "The machine is back at its starting position." }];
+    this.messages = [];
     this.renderGame();
   }
 
@@ -331,7 +358,8 @@ export class PerspectiveApp {
       },
     };
     this.eventStore.record(this.result.events);
-    this.messages.push({ actor: "system", text: "Last action undone." });
+    this.messages.push({ actor: "bot_a", text: "The last action was reversed." });
+    this.messages.push({ actor: "bot_b", text: "The last action was reversed." });
     this.renderGame();
   }
 
@@ -342,9 +370,29 @@ export class PerspectiveApp {
     window.setTimeout(() => viewport.classList.remove("is-transitioning"), 600);
   }
 
+  private projectionHasVisibleChange(previous: Projection, current: Projection): boolean {
+    const diff = diffProjection(previous, current);
+    return Boolean(
+      diff.clawMovedHorizontally ||
+      diff.clawMovedVertically ||
+      diff.clawStateChanged ||
+      diff.objectGrabbed ||
+      diff.objectDropped ||
+      diff.deliveredObject ||
+      diff.becameVisible.length ||
+      diff.becameHidden.length ||
+      diff.movedObjects.length,
+    );
+  }
+
   private renderDebugCanvas(state: ClawMachineState): void {
     const canvas = this.root.querySelector<HTMLCanvasElement>("[data-testid='debug-3d']");
     if (canvas) drawDebugWorld(canvas, state);
+  }
+
+  private scrollChatToLatest(): void {
+    const chatLog = this.root.querySelector<HTMLElement>("[data-testid='bot-chat']");
+    if (chatLog) chatLog.scrollTop = chatLog.scrollHeight;
   }
 
   private installDebugApi(): void {

@@ -6,9 +6,9 @@ Build a polished browser-based puzzle-game prototype centered on one idea:
 
 **The player's view of the world is accurate but incomplete. Solving the puzzle requires inferring a richer underlying model.**
 
-The prototype contains one playable level:
+The prototype currently contains two playable levels:
 
-**Claw Machine** — infer a 3D space from multiple 2D viewpoints.
+**Claw Machine** and **Calibration Bay** — infer a 3D space from multiple 2D viewpoints.
 
 The experience should prioritize:
 
@@ -20,7 +20,7 @@ The experience should prioritize:
 - strong observability;
 - reliable automated user testing.
 
-Do not add extra levels, progression systems, achievements, accounts, narrative systems, or other meta-game features.
+Do not add level-specific engine branches, achievements, accounts, narrative systems, or other meta-game features.
 
 ## Implementation contract
 
@@ -95,14 +95,13 @@ PERSPECTIVE
 01
 CLAW MACHINE
 
-Infer depth from incomplete views
-
 [ PLAY ]
 ```
 
-Because there is currently only one level, do not build a complex level-selection system.
+Each level-select card should show only the level number and game name; do not show flavor text, artwork, or a puzzle hint there.
 
-However, structure the code so additional level cards can be added later.
+Keep the level selection screen simple, but render its cards from the level registry so
+additional levels can be added later.
 
 ---
 
@@ -235,34 +234,29 @@ Desktop layout:
 ```text
 ┌─────────────────────────────────────────────────────────────┐
 │ CLAW MACHINE                                    KEYS 0 / 3 │
-├───────────┬───────────────────────────┬─────────────────────┤
-│           │                           │                     │
-│ CONTROLS  │                           │      BOT CHAT       │
-│           │                           │                     │
-│   [ ◀ ]   │     PIXEL ART VIEW        │ BOT A               │
-│           │                           │ ...                 │
-│   [ ▶ ]   │                           │                     │
-│           │                           │ BOT B               │
-│           │                           │ ...                 │
-│           │                           │                     │
-│           │                           │ [ BOT A / BOT B ]   │
-│           │                           │ [LEFT][RIGHT][GRAB] │
-│           │                           │                     │
-│           │                           │ > command           │
-└───────────┴───────────────────────────┴─────────────────────┘
+├─────────────────────────────────────┬───────────────────────┤
+│                                     │                       │
+│          PIXEL ART VIEW             │      BOT CHAT         │
+│                                     │                       │
+├─────────────────────────────────────┤ BOT A                 │
+│ [ YOU ] [ BOT A ] [ BOT B ]         │ ...                   │
+│ [LEFT][RIGHT][GRAB]                 │ BOT B                 │
+│                                     │ ...                   │
+└─────────────────────────────────────┴───────────────────────┘
 ```
 
-The game viewport should remain the visual focus.
+The game viewport should remain the visual focus. The three operator control groups sit directly below it. The bot chat is a read-only scrolling feed; it has no text input, bot selector, or chat-submit interaction.
 
 ---
 
 # 10. Player Controls
 
-The player has two direct movement buttons:
+The player has three direct controls:
 
 ```text
 LEFT
 RIGHT
+GRAB
 ```
 
 Movement occurs in discrete grid-like steps.
@@ -272,15 +266,18 @@ The controlled axis depends on the current player viewpoint.
 Suggested behavior:
 
 ```text
-View A:
-LEFT / RIGHT → X axis
+View A (`XZ`):
+LEFT / RIGHT → Y axis (collapsed by this view)
 
-View B:
-LEFT / RIGHT → Y axis
+View B (`YZ`):
+LEFT / RIGHT → X axis (collapsed by this view)
 
-View C:
-LEFT / RIGHT → X axis
+View C (`XY`):
+LEFT / RIGHT → Z axis (collapsed by this view)
 ```
+
+The active view must not show the claw moving when its own collapsed axis changes.
+The other projections should show the corresponding horizontal or vertical movement.
 
 The bots remain necessary because the player never receives convenient direct control over all spatial axes simultaneously.
 
@@ -322,28 +319,7 @@ RIGHT
 GRAB
 ```
 
-Support both:
-
-- clickable quick-action buttons;
-- text command entry.
-
-Accepted text examples:
-
-```text
-left
-move left
-go left
-
-right
-move right
-go right
-
-grab
-pick up
-drop
-```
-
-A deterministic parser maps these onto known commands.
+Use explicit clickable controls for each operator. Each operator has LEFT, RIGHT, and GRAB buttons. The domain command parser may remain available for automated tooling and future interfaces, but the prototype presentation does not expose text command entry.
 
 Do not use an external language model.
 
@@ -362,8 +338,7 @@ Their role is to:
 Example:
 
 ```text
-PLAYER:
-Bot A, move right.
+PLAYER selects BOT A → RIGHT.
 
 BOT A:
 The claw moved right on my screen.
@@ -375,8 +350,7 @@ The claw didn't move sideways from where I'm looking.
 Another:
 
 ```text
-PLAYER:
-Bot B, grab.
+PLAYER selects BOT B → GRAB.
 
 BOT A:
 The claw lowered behind the pink plushie.
@@ -848,16 +822,19 @@ Examples:
 data-testid="play-button"
 data-testid="move-left"
 data-testid="move-right"
-data-testid="bot-a-selector"
-data-testid="bot-b-selector"
-data-testid="bot-command-input"
 data-testid="bot-left"
 data-testid="bot-right"
 data-testid="bot-grab"
+data-testid="bot-b-left"
+data-testid="bot-b-right"
+data-testid="bot-b-grab"
 data-testid="bot-a-message"
 data-testid="bot-b-message"
 data-testid="key-counter"
 data-testid="reset-level"
+data-testid="previous-level"
+data-testid="next-level"
+data-testid="return-menu"
 data-testid="game-canvas"
 ```
 
@@ -947,10 +924,8 @@ Use Playwright to test:
 - Play button works;
 - LEFT button moves claw;
 - RIGHT button moves claw;
-- bot selection works;
-- bot quick actions work;
-- typed commands work;
-- invalid commands show a helpful response;
+- each bot control bank dispatches its requested action;
+- there is no chat input or command-submit interaction;
 - bot messages update;
 - reset restores initial state;
 - perspective changes occur after key delivery;
@@ -1162,7 +1137,7 @@ The prototype is complete when:
 19. Debug state can be inspected through `window.__PERSPECTIVE__`.
 20. Structured logs and replay data are available for user testing.
 21. Failed automated runs preserve useful diagnostics.
-22. No additional levels or unnecessary systems are implemented.
+22. Levels remain data-driven and navigable without level-specific engine branches.
 
 The central design criterion is:
 

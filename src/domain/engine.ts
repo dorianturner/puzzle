@@ -25,11 +25,21 @@ const event = (
 const actorView = (state: ClawMachineState, level: LevelDefinition, actor: ActorId): ViewId =>
   actor === "player" ? state.currentPlayerView : level.initialAssignments[actor];
 
-const movementAxis = (view: ViewId): "x" | "y" => (view === "YZ" ? "y" : "x");
+/** Each viewpoint controls the axis collapsed by that viewpoint. */
+const movementAxis = (view: ViewId): "x" | "y" | "z" => {
+  switch (view) {
+    case "XZ":
+      return "y";
+    case "YZ":
+      return "x";
+    case "XY":
+      return "z";
+  }
+};
 
 const movePosition = (
   position: Vec3,
-  axis: "x" | "y",
+  axis: "x" | "y" | "z",
   delta: number,
   level: LevelDefinition,
 ): Vec3 => {
