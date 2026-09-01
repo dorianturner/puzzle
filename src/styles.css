@@ -1,0 +1,415 @@
+:root {
+  color: #e7e9ee;
+  background: #090a0e;
+  font-family: "IBM Plex Mono", SFMono-Regular, Consolas, monospace;
+  font-synthesis: none;
+  text-rendering: optimizelegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 1024px;
+  min-height: 100vh;
+  margin: 0;
+  background: #090a0e;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #e4c86a;
+  outline-offset: 3px;
+}
+
+.menu-screen {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 48px;
+}
+
+.menu-copy {
+  width: min(480px, 100%);
+}
+
+.eyebrow,
+.panel-label,
+.message-actor,
+.header-status span,
+.command-form label {
+  margin: 0;
+  color: #788195;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+
+.menu-copy h1,
+.game-header h1 {
+  margin: 12px 0;
+  color: #f1f3f6;
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.level-number {
+  margin: 62px 0 0;
+  color: #a6adbc;
+  font-size: 14px;
+}
+
+.subtitle {
+  margin: 0 0 36px;
+  color: #a6adbc;
+  font-size: 13px;
+}
+
+.level-cards {
+  display: grid;
+  gap: 10px;
+}
+
+.level-card {
+  display: grid;
+  gap: 5px;
+  padding: 17px 18px;
+  border: 1px solid #343947;
+  background: #10121a;
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.level-card:hover {
+  border-color: #e4c86a;
+  background: #161923;
+}
+
+.level-card span,
+.level-card small {
+  color: #788195;
+  font-size: 11px;
+}
+
+.level-card strong {
+  color: #e7e9ee;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+}
+
+.game-shell {
+  width: min(1500px, 100%);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.game-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  padding: 0 0 18px;
+  border-bottom: 1px solid #252936;
+}
+
+.game-header h1 {
+  margin: 8px 0 0;
+  font-size: 21px;
+}
+
+.header-status {
+  display: grid;
+  gap: 7px;
+  min-width: 100px;
+  text-align: right;
+}
+
+.header-status strong {
+  color: #e4c86a;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: 150px minmax(540px, 1fr) 320px;
+  gap: 1px;
+  min-height: 600px;
+  margin-top: 1px;
+  background: #252936;
+}
+
+.panel {
+  background: #0d0f15;
+}
+
+.controls-panel,
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.panel-label {
+  padding-bottom: 20px;
+  border-bottom: 1px solid #252936;
+}
+
+.view-label {
+  margin: 26px 0 14px;
+  color: #e4c86a;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+.control-button {
+  display: grid;
+  width: 100%;
+  height: 56px;
+  margin: 4px 0;
+  place-items: center;
+  border: 1px solid #343947;
+  background: #161923;
+  font-size: 23px;
+}
+
+.control-button:hover {
+  border-color: #e4c86a;
+}
+
+.control-spacer {
+  flex: 1;
+  min-height: 30px;
+}
+
+.button {
+  padding: 10px 12px;
+  border: 1px solid #343947;
+  background: #161923;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.button.secondary {
+  margin-top: 8px;
+  color: #a6adbc;
+  background: transparent;
+}
+
+.button.text-button {
+  margin-top: 20px;
+  border-color: transparent;
+  background: transparent;
+  color: #788195;
+}
+
+.button.accent,
+.accent-button {
+  color: #090a0e;
+  border-color: #e4c86a;
+  background: #e4c86a;
+}
+
+.viewport-panel {
+  position: relative;
+  display: grid;
+  min-height: 600px;
+  place-items: center;
+  overflow: hidden;
+  transition:
+    filter 600ms ease,
+    opacity 600ms ease;
+}
+
+.viewport-panel.is-transitioning {
+  filter: brightness(1.35);
+  opacity: 0.72;
+}
+
+.viewport-panel canvas {
+  width: min(100%, 680px);
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.viewport-caption {
+  position: absolute;
+  right: 22px;
+  bottom: 16px;
+  margin: 0;
+  color: #596174;
+  font-size: 11px;
+}
+
+.bot-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin: 12px 0;
+}
+
+.bot-tab {
+  padding: 9px 6px;
+  border: 1px solid #252936;
+  background: transparent;
+  color: #788195;
+  font-size: 10px;
+}
+
+.bot-tab.active {
+  border-color: #677086;
+  color: #e7e9ee;
+}
+
+.chat-log {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 260px;
+  max-height: 370px;
+  overflow: auto;
+  padding: 10px 2px;
+}
+
+.chat-message {
+  display: grid;
+  gap: 5px;
+  color: #c5cad4;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.chat-message.system {
+  color: #788195;
+}
+
+.message-actor {
+  font-size: 9px;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.quick-button {
+  padding: 9px 5px;
+  font-size: 10px;
+}
+
+.quick-button:hover {
+  border-color: #e4c86a;
+}
+
+.command-form {
+  display: grid;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.command-row {
+  display: flex;
+  border: 1px solid #343947;
+}
+
+.command-row input {
+  min-width: 0;
+  flex: 1;
+  padding: 10px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #e7e9ee;
+  font-size: 12px;
+}
+
+.send-button {
+  width: 38px;
+  border: 0;
+  border-left: 1px solid #343947;
+  background: #161923;
+  color: #e4c86a;
+}
+
+.complete-panel {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 0;
+  border-top: 1px solid #252936;
+}
+
+.complete-panel h2 {
+  margin: 0 auto 0 0;
+  color: #e4c86a;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+}
+
+.debug-panel {
+  display: grid;
+  grid-template-columns: 170px 1fr 280px;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid #343947;
+  background: #0b0d12;
+}
+
+.debug-panel > div {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.debug-panel pre {
+  max-height: 170px;
+  margin: 0;
+  overflow: auto;
+  color: #a6adbc;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.debug-canvas {
+  width: 280px;
+  height: 170px;
+  image-rendering: pixelated;
+}
+
+@media (width <= 1150px) {
+  .game-grid {
+    grid-template-columns: 130px minmax(500px, 1fr) 280px;
+  }
+
+  .game-shell {
+    padding: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

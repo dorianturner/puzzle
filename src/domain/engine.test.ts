@@ -1,0 +1,50 @@
+import { describe, expect, it } from "vitest";
+import { applyAction, executeSequence } from "./engine";
+import { clawMachineLevel } from "./level";
+import { createInitialState } from "./state";
+import type { LevelDefinition } from "./types";
+
+describe("Claw Machine simulation", () => {
+  it("completes the authored canonical solution from seed 1001", () => {
+    const result = executeSequence(clawMachineLevel, clawMachineLevel.canonicalSolution, 1001);
+    const eventTypes = result.events.map((event) => event.type);
+
+    expect(result.state.seed).toBe(1001);
+    expect(result.state.keysDelivered).toEqual(["key-1", "key-2", "key-3"]);
+    expect(result.state.currentPlayerView).toBe("XY");
+    expect(result.state.completed).toBe(true);
+    expect(eventTypes).toContain("level_completed");
+  });
+
+  it("replays the same seed and action sequence identically", () => {
+    const first = executeSequence(clawMachineLevel, clawMachineLevel.canonicalSolution, 1001);
+    const second = executeSequence(clawMachineLevel, clawMachineLevel.canonicalSolution, 1001);
+
+    expect(second.state).toEqual(first.state);
+    expect(second.events).toEqual(first.events);
+  });
+
+  it("constrains movement and logs a blocked boundary action", () => {
+    const state = createInitialState(clawMachineLevel);
+    state.clawPosition = { x: 0, y: 0, z: 6 };
+    const result = applyAction(state, { actor: "player", command: "LEFT" }, clawMachineLevel);
+
+    expect(result.state.clawPosition).toEqual({ x: 0, y: 0, z: 6 });
+    expect(result.events.some((event) => event.type === "claw_move_blocked")).toBe(true);
+    expect(result.botMessages.bot_a.join(" ")).toContain("did not move sideways");
+  });
+
+  it("supports a future level definition without engine changes", () => {
+    const futureLevel: LevelDefinition = {
+      ...clawMachineLevel,
+      id: "future-level",
+      objects: [],
+      canonicalSolution: [],
+    };
+    const state = createInitialState(futureLevel, 2002);
+    const result = applyAction(state, { actor: "player", command: "RIGHT" }, futureLevel);
+
+    expect(result.state.levelId).toBe("future-level");
+    expect(result.state.clawPosition.x).toBe(1);
+  });
+});
