@@ -1,3 +1,4 @@
+import { projectPosition } from "../domain";
 import type {
   ClawMachineState,
   LevelDefinition,
@@ -477,6 +478,27 @@ const drawClaw = (
   context.stroke();
 };
 
+const drawPrizeChute = (
+  context: CanvasRenderingContext2D,
+  projection: Projection,
+  level: LevelDefinition,
+  layout: CanvasLayout,
+): void => {
+  const chute = projectPosition(level.chutePosition, projection.view);
+  const point = screenPoint(layout, chute.horizontal, chute.vertical);
+  const width = Math.min(layout.cellWidth * 0.72, 64);
+  const height = Math.min(layout.cellHeight * 0.52, 28);
+
+  context.fillStyle = "#0b0819";
+  context.fillRect(point.x - width / 2, point.y - height / 2, width, height);
+  context.strokeStyle = "#c27dff";
+  context.lineWidth = 2;
+  context.strokeRect(point.x - width / 2, point.y - height / 2, width, height);
+  pixel(context, "#65f6ff", point.x - width * 0.34, point.y - 2, width * 0.68, 4);
+  pixel(context, "#df5360", point.x - width * 0.22, point.y + 6, width * 0.44, 3);
+  drawText(context, "PRIZE HOLE", point.x, point.y - height * 0.95, "#f0c7ff", 8, "center");
+};
+
 /** Render projection data into the pixel-art machine viewport. */
 export const drawProjection = (
   canvas: HTMLCanvasElement,
@@ -491,6 +513,7 @@ export const drawProjection = (
   drawBackground(context, width, height);
   const layout = getLayout(projection, level, width, height);
   drawMachineFrame(context, layout, projection);
+  drawPrizeChute(context, projection, level, layout);
 
   const items = [...projection.items].sort((a, b) => a.depth - b.depth || a.id.localeCompare(b.id));
   for (const item of items) drawItem(context, item, layout);

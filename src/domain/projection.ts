@@ -3,49 +3,43 @@ import type {
   ProjectedItem,
   Projection,
   ProjectionDiff,
+  Vec3,
   ViewId,
   WorldObject,
 } from "./types";
 
-interface ScreenPosition {
+export interface ScreenPosition {
   horizontal: number;
   vertical: number;
   depth: number;
 }
 
-const toScreenPosition = (object: WorldObject, view: ViewId): ScreenPosition => {
+/** Convert a world position into the screen coordinates used by a view. */
+export const projectPosition = (position: Vec3, view: ViewId): ScreenPosition => {
   switch (view) {
     case "XZ":
       return {
-        horizontal: object.position.x,
-        vertical: object.position.z,
-        depth: object.position.y,
+        horizontal: position.x,
+        vertical: position.z,
+        depth: position.y,
       };
     case "YZ":
       return {
-        horizontal: object.position.y,
-        vertical: object.position.z,
-        depth: object.position.x,
+        horizontal: position.y,
+        vertical: position.z,
+        depth: position.x,
       };
     case "XY":
       return {
-        horizontal: object.position.y,
-        vertical: object.position.x,
-        depth: object.position.z,
+        horizontal: position.y,
+        vertical: position.x,
+        depth: position.z,
       };
   }
 };
 
 const toClawPosition = (state: ClawMachineState, view: ViewId): ScreenPosition => {
-  const { x, y, z } = state.clawPosition;
-  switch (view) {
-    case "XZ":
-      return { horizontal: x, vertical: z, depth: y };
-    case "YZ":
-      return { horizontal: y, vertical: z, depth: x };
-    case "XY":
-      return { horizontal: y, vertical: x, depth: z };
-  }
+  return projectPosition(state.clawPosition, view);
 };
 
 const positionKey = (position: ScreenPosition): string =>
@@ -63,7 +57,7 @@ const itemFromObject = (
 ): ProjectedItem => {
   const position = state.heldObjectId === object.id ? state.clawPosition : object.position;
   const positionedObject = { ...object, position };
-  const screen = toScreenPosition(positionedObject, view);
+  const screen = projectPosition(positionedObject.position, view);
   return {
     id: object.id,
     kind: object.kind,

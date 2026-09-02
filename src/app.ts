@@ -134,7 +134,7 @@ export class PerspectiveApp {
           <section class="game-main-column">
             <section class="viewport-panel panel">
               <div class="viewport-heading"><span class="live-dot"></span><strong>${viewName(state.currentPlayerView)}</strong><span class="view-rule"></span><small>LIVE PROJECTION</small></div>
-              <canvas aria-label="Pixel art claw machine view" data-testid="game-canvas" height="520" width="880"></canvas>
+              <canvas aria-label="Pixel art claw machine view with a clearly marked prize hole" data-testid="game-canvas" height="520" width="880"></canvas>
               <p class="viewport-caption">${state.completed ? "LEVEL COMPLETE" : "AUTHORITATIVE MACHINE / OBSERVATION FEED"}</p>
             </section>
             <section class="controls-panel panel">

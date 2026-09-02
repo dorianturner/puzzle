@@ -11,6 +11,10 @@ test.describe("Perspective gameplay", () => {
     await expect(page.getByTestId("game-screen")).toBeVisible();
     await expect(page.getByTestId("game-screen")).not.toContainText("SIDE VIEW");
     await expect(page.getByTestId("game-canvas")).toBeVisible();
+    await expect(page.getByTestId("game-canvas")).toHaveAttribute(
+      "aria-label",
+      "Pixel art claw machine view with a clearly marked prize hole",
+    );
     await expect(page.locator(".controls-strip")).toBeVisible();
     await expect(page.getByTestId("key-counter")).toHaveText("0 / 3");
   });

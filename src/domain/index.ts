@@ -4,6 +4,7 @@ export { clawMachineLevel, getLevel, LEVELS } from "./level";
 export {
   allProjections,
   diffProjection,
+  projectPosition,
   project,
   projectToXY,
   projectToXZ,

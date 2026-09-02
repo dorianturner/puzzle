@@ -14,7 +14,7 @@ input -> parse/validate -> applyAction -> projections -> bot observations -> UI 
 
 ## Projections
 
-`projectToXZ`, `projectToYZ`, and `projectToXY` map the same 3D positions onto horizontal, vertical, and collapsed-depth coordinates. Items sharing a projected cell are sorted by depth and stable ID; only the front item is marked visible. This gives bots an observation surface without giving them hidden coordinates.
+`projectPosition`, `projectToXZ`, `projectToYZ`, and `projectToXY` map the same 3D positions onto horizontal, vertical, and collapsed-depth coordinates. Items sharing a projected cell are sorted by depth and stable ID; only the front item is marked visible. This gives bots an observation surface without giving them hidden coordinates.
 
 `diffProjection` compares two projections and records visible keys aligned with the claw. Side views treat a shared horizontal track as alignment; the rotated top view requires the same screen cell. `generateBotObservations` consumes only that diff and a bot view, so bots can say “I'm over a key on my screen” without receiving hidden coordinates. Its templates never print coordinates, axis names, solutions, or hidden locations.
 
@@ -26,7 +26,7 @@ Grid positions are integers. Initially, YOU use `XZ` and control Y, Bot A uses `
 
 ## Presentation
 
-The DOM provides the menu, explicit operator controls, read-only bot feed, status, and accessible labels. Canvas renders the current player projection and pixel-art primitives with smoothing disabled. The `public/assets/pixel/sprite-sheet.png` file is the committed art reference for future sprite extraction; the renderer has a deterministic code-drawn fallback so missing image loading cannot affect gameplay.
+The DOM provides the menu, explicit operator controls, read-only bot feed, status, and accessible labels. Canvas renders the current player projection and pixel-art primitives with smoothing disabled. It projects `level.chutePosition` through the same `projectPosition` mapping and draws a clearly labelled `PRIZE HOLE` marker in every view. The `public/assets/pixel/sprite-sheet.png` file is the committed art reference for future sprite extraction; the renderer has a deterministic code-drawn fallback so missing image loading cannot affect gameplay.
 
 The default perspective transition is 600 ms and runs only when the active projection visibly changes or the player unlocks a new view. Simulation state changes before the transition begins, and reduced-motion preferences shorten the visual transition.
 

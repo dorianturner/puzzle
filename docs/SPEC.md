@@ -189,6 +189,10 @@ Shows:
 The top view is rotated on screen so movement along Y is left/right, matching the
 side view's depth direction.
 
+The prize hole must be clearly marked in every view. Its world position is
+projected with the same view mapping as the claw and objects, so each observer
+can identify where a dropped key must go.
+
 Initially seen only by Bot B.
 
 Unlocked for the player after Key 2.

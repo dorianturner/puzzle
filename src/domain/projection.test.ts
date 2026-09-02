@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { clawMachineLevel } from "./level";
-import { diffProjection, projectToXY, projectToXZ, projectToYZ } from "./projection";
+import {
+  diffProjection,
+  projectPosition,
+  projectToXY,
+  projectToXZ,
+  projectToYZ,
+} from "./projection";
 import { createInitialState } from "./state";
 
 describe("orthographic projections", () => {
@@ -50,6 +56,14 @@ describe("orthographic projections", () => {
     expect(xy.claw.horizontal).toBe(5);
     expect(xy.claw.vertical).toBe(2);
     expect(xy.claw.depth).toBe(4);
+  });
+
+  it("uses the same world-to-screen mapping for static markers", () => {
+    const position = { x: 2, y: 5, z: 0 };
+
+    expect(projectPosition(position, "XZ")).toMatchObject({ horizontal: 2, vertical: 0 });
+    expect(projectPosition(position, "YZ")).toMatchObject({ horizontal: 5, vertical: 0 });
+    expect(projectPosition(position, "XY")).toMatchObject({ horizontal: 5, vertical: 2 });
   });
 
   it("reports side-track key alignment without exposing hidden depth", () => {
