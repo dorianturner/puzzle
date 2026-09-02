@@ -5,6 +5,7 @@ test.describe("Perspective gameplay", () => {
   test("opens the authored level from the minimal menu", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByTestId("menu-screen")).toBeVisible();
+    await expect(page.getByTestId("play-button")).toHaveCount(1);
     await expect(page.getByTestId("menu-screen")).not.toContainText("Infer depth");
     await page.getByTestId("play-button").first().click();
     await expect(page.getByTestId("game-screen")).toBeVisible();
@@ -33,17 +34,9 @@ test.describe("Perspective gameplay", () => {
     expect(state?.clawPosition).toEqual({ x: 0, y: 1, z: 6 });
   });
 
-  test("navigates between registry levels and returns to level select", async ({ page }) => {
+  test("returns from Claw Machine to level select", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByTestId("play-button")).toHaveCount(2);
     await page.getByTestId("play-button").first().click();
-    await expect(page.getByTestId("level-title")).toHaveText("CLAW MACHINE");
-    await expect(page.getByTestId("previous-level")).toBeDisabled();
-    await page.getByTestId("next-level").click();
-    await expect(page.getByTestId("level-title")).toHaveText("CALIBRATION BAY");
-    await expect(page.getByTestId("previous-level")).toBeEnabled();
-    await expect(page.getByTestId("next-level")).toBeDisabled();
-    await page.getByTestId("previous-level").click();
     await expect(page.getByTestId("level-title")).toHaveText("CLAW MACHINE");
     await page.getByTestId("return-menu").click();
     await expect(page.getByTestId("menu-screen")).toBeVisible();

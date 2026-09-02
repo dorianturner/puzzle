@@ -6,9 +6,9 @@ Build a polished browser-based puzzle-game prototype centered on one idea:
 
 **The player's view of the world is accurate but incomplete. Solving the puzzle requires inferring a richer underlying model.**
 
-The prototype currently contains two playable levels:
+The prototype currently contains one playable level:
 
-**Claw Machine** and **Calibration Bay** — infer a 3D space from multiple 2D viewpoints.
+**Claw Machine** — infer a 3D space from multiple 2D viewpoints.
 
 The experience should prioritize:
 
@@ -182,9 +182,12 @@ Unlocked for the player after Key 1.
 
 Shows:
 
-- X horizontally;
-- Y vertically;
+- Y horizontally;
+- X vertically;
 - Z collapsed.
+
+The top view is rotated on screen so movement along Y is left/right, matching the
+side view's depth direction.
 
 Initially seen only by Bot B.
 
@@ -278,6 +281,14 @@ LEFT / RIGHT → Z axis (collapsed by this view)
 
 The active view must not show the claw moving when its own collapsed axis changes.
 The other projections should show the corresponding horizontal or vertical movement.
+
+With the initial assignments, the visible movement contract is:
+
+```text
+YOU / View A controls Y → Bot A sees left/right; Bot B sees left/right.
+Bot A / View B controls X → YOU sees left/right; Bot B sees up/down.
+Bot B / View C controls Z → YOU sees up/down; Bot A sees up/down.
+```
 
 The bots remain necessary because the player never receives convenient direct control over all spatial axes simultaneously.
 
@@ -832,8 +843,6 @@ data-testid="bot-a-message"
 data-testid="bot-b-message"
 data-testid="key-counter"
 data-testid="reset-level"
-data-testid="previous-level"
-data-testid="next-level"
 data-testid="return-menu"
 data-testid="game-canvas"
 ```
@@ -1137,7 +1146,7 @@ The prototype is complete when:
 19. Debug state can be inspected through `window.__PERSPECTIVE__`.
 20. Structured logs and replay data are available for user testing.
 21. Failed automated runs preserve useful diagnostics.
-22. Levels remain data-driven and navigable without level-specific engine branches.
+22. Level content remains data-driven and the menu renders registered definitions without level-specific engine branches.
 
 The central design criterion is:
 

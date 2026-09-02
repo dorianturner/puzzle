@@ -29,8 +29,8 @@ const toScreenPosition = (object: WorldObject, view: ViewId): ScreenPosition => 
       };
     case "XY":
       return {
-        horizontal: object.position.x,
-        vertical: object.position.y,
+        horizontal: object.position.y,
+        vertical: object.position.x,
         depth: object.position.z,
       };
   }
@@ -44,7 +44,7 @@ const toClawPosition = (state: ClawMachineState, view: ViewId): ScreenPosition =
     case "YZ":
       return { horizontal: y, vertical: z, depth: x };
     case "XY":
-      return { horizontal: x, vertical: y, depth: z };
+      return { horizontal: y, vertical: x, depth: z };
   }
 };
 

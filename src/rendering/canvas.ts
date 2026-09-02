@@ -51,8 +51,8 @@ const getViewSize = (projection: Projection, level: LevelDefinition): ViewSize =
       };
     case "XY":
       return {
-        horizontal: level.bounds.x.max - level.bounds.x.min + 1,
-        vertical: level.bounds.y.max - level.bounds.y.min + 1,
+        horizontal: level.bounds.y.max - level.bounds.y.min + 1,
+        vertical: level.bounds.x.max - level.bounds.x.min + 1,
       };
   }
 };

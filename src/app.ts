@@ -35,8 +35,8 @@ const escapeHtml = (value: string): string =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 
-const button = (label: string, testId: string, className = "button", disabled = false): string =>
-  `<button class="${className}" data-testid="${testId}"${disabled ? " disabled" : ""} type="button">${label}</button>`;
+const button = (label: string, testId: string, className = "button"): string =>
+  `<button class="${className}" data-testid="${testId}" type="button">${label}</button>`;
 
 export class PerspectiveApp {
   private readonly root: HTMLElement;
@@ -118,23 +118,6 @@ export class PerspectiveApp {
     this.renderGame();
   }
 
-  private currentLevelIndex(): number {
-    return LEVELS.findIndex((level) => level.id === this.level.id);
-  }
-
-  private isFirstLevel(): boolean {
-    return this.currentLevelIndex() <= 0;
-  }
-
-  private isLastLevel(): boolean {
-    return this.currentLevelIndex() === LEVELS.length - 1;
-  }
-
-  private navigateLevel(direction: -1 | 1): void {
-    const nextLevel = LEVELS[this.currentLevelIndex() + direction];
-    if (nextLevel) this.startLevel(nextLevel);
-  }
-
   private renderGame(): void {
     const state = this.result.state;
     this.root.innerHTML = `
@@ -162,15 +145,9 @@ export class PerspectiveApp {
                 ${this.renderControlGroup("BOT B", "B", "bot_b", "control-bot-b")}
               </div>
               <div class="control-footer">
-                <nav class="level-navigation" aria-label="Level navigation">
-                  ${button("← PREV LEVEL", "previous-level", "button secondary", this.isFirstLevel())}
-                  ${button("NEXT LEVEL →", "next-level", "button secondary", this.isLastLevel())}
-                </nav>
-                <div class="control-footer-actions">
-                  ${button("RESET LEVEL", "reset-level", "button secondary")}
-                  ${button("UNDO", "undo-action", "button secondary")}
-                  ${button("LEVEL SELECT", "return-menu", "button text-button")}
-                </div>
+                ${button("RESET LEVEL", "reset-level", "button secondary")}
+                ${button("UNDO", "undo-action", "button secondary")}
+                ${button("LEVEL SELECT", "return-menu", "button text-button")}
               </div>
             </section>
           </section>
@@ -277,8 +254,6 @@ export class PerspectiveApp {
     this.onClick("reset-level", () => this.resetLevel());
     this.onClick("undo-action", () => this.undo());
     this.onClick("return-menu", () => this.renderMenu());
-    this.onClick("previous-level", () => this.navigateLevel(-1));
-    this.onClick("next-level", () => this.navigateLevel(1));
     this.onClick("complete-menu", () => this.renderMenu());
     this.onClick("replay-level", () => this.startLevel(this.level));
     const botActions: Record<string, Action> = {

@@ -704,24 +704,6 @@ input:focus-visible {
   padding-top: 12px;
 }
 
-.level-navigation,
-.control-footer-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.level-navigation {
-  margin-right: auto;
-}
-
-.level-navigation .button:disabled {
-  border-color: #202a35;
-  color: #3d4b59;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
 .button {
   padding: 9px 12px;
   border: 1px solid #344454;

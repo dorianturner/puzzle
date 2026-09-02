@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { clawMachineLevel } from "./level";
-import { diffProjection, projectToXZ, projectToYZ } from "./projection";
+import { diffProjection, projectToXY, projectToXZ, projectToYZ } from "./projection";
 import { createInitialState } from "./state";
 
 describe("orthographic projections", () => {
@@ -39,5 +39,16 @@ describe("orthographic projections", () => {
 
     expect(diff.clawMovedHorizontally).toBe(1);
     expect(JSON.stringify(diff)).not.toContain("world coordinates");
+  });
+
+  it("presents Y horizontally and X vertically in the XY view", () => {
+    const state = createInitialState(clawMachineLevel);
+    state.clawPosition = { x: 2, y: 5, z: 4 };
+
+    const xy = projectToXY(state);
+
+    expect(xy.claw.horizontal).toBe(5);
+    expect(xy.claw.vertical).toBe(2);
+    expect(xy.claw.depth).toBe(4);
   });
 });

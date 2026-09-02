@@ -28,7 +28,7 @@ npm run preview
 
 The simulation in `src/domain` owns all positions, object state, claw behavior, progression, projections, and deterministic events. The Canvas renderer receives projections and never mutates simulation state. The DOM shell owns controls, the read-only bot feed, and accessibility semantics.
 
-Levels are registered through the `LEVELS` registry. The current registry contains Claw Machine and Calibration Bay. Adding another level means adding authored data that implements `LevelDefinition`; movement, grab/drop mechanics, projection, observation, progression, and level navigation remain shared.
+Levels are registered through the `LEVELS` registry. The current registry contains the Claw Machine level. Adding another level means adding authored data that implements `LevelDefinition`; movement, grab/drop mechanics, projection, observation, and progression remain shared.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/LEVEL_AUTHORING.md](docs/LEVEL_AUTHORING.md), and [docs/TESTING.md](docs/TESTING.md) for details.
 

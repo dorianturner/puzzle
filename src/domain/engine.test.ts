@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { applyAction, executeSequence } from "./engine";
-import { calibrationLevel, clawMachineLevel } from "./level";
+import { clawMachineLevel } from "./level";
 import { allProjections, diffProjection } from "./projection";
 import { createInitialState } from "./state";
 import type { LevelDefinition } from "./types";
@@ -15,17 +15,6 @@ describe("Claw Machine simulation", () => {
     expect(result.state.currentPlayerView).toBe("XY");
     expect(result.state.completed).toBe(true);
     expect(eventTypes).toContain("level_completed");
-  });
-
-  it("completes the second registered level through its authored solution", () => {
-    const result = executeSequence(
-      calibrationLevel,
-      calibrationLevel.canonicalSolution,
-      calibrationLevel.seed,
-    );
-
-    expect(result.state.keysDelivered).toEqual(["cal-key-1", "cal-key-2", "cal-key-3"]);
-    expect(result.state.completed).toBe(true);
   });
 
   it("replays the same seed and action sequence identically", () => {
@@ -51,13 +40,13 @@ describe("Claw Machine simulation", () => {
       actor: "player" as const,
       view: "XZ" as const,
       axis: "y" as const,
-      expected: { XZ: [0, 0], YZ: [1, 0], XY: [0, 1] } as const,
+      expected: { XZ: [0, 0], YZ: [1, 0], XY: [1, 0] } as const,
     },
     {
       actor: "bot_a" as const,
       view: "YZ" as const,
       axis: "x" as const,
-      expected: { XZ: [1, 0], YZ: [0, 0], XY: [1, 0] } as const,
+      expected: { XZ: [1, 0], YZ: [0, 0], XY: [0, 1] } as const,
     },
     {
       actor: "bot_b" as const,
@@ -88,6 +77,32 @@ describe("Claw Machine simulation", () => {
         verticalDelta,
       );
     }
+  });
+
+  it("reports the initial axis contract through bot observations", () => {
+    const playerMove = applyAction(
+      { ...createInitialState(clawMachineLevel), clawPosition: { x: 4, y: 4, z: 2 } },
+      { actor: "player", command: "RIGHT" },
+      clawMachineLevel,
+    );
+    expect(playerMove.botMessages.bot_a[0]).toBe("The claw moved right on my screen.");
+    expect(playerMove.botMessages.bot_b[0]).toBe("The claw moved right on my screen.");
+
+    const botAMove = applyAction(
+      { ...createInitialState(clawMachineLevel), clawPosition: { x: 4, y: 4, z: 2 } },
+      { actor: "bot_a", command: "RIGHT" },
+      clawMachineLevel,
+    );
+    expect(botAMove.botMessages.bot_a[0]).toBe("The claw did not move on my screen.");
+    expect(botAMove.botMessages.bot_b[0]).toBe("The claw moved up on my screen.");
+
+    const botBMove = applyAction(
+      { ...createInitialState(clawMachineLevel), clawPosition: { x: 4, y: 4, z: 2 } },
+      { actor: "bot_b", command: "RIGHT" },
+      clawMachineLevel,
+    );
+    expect(botBMove.botMessages.bot_a[0]).toBe("The claw moved up on my screen.");
+    expect(botBMove.botMessages.bot_b[0]).toBe("The claw did not move on my screen.");
   });
 
   it("supports a future level definition without engine changes", () => {
