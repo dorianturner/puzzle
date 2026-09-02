@@ -14,6 +14,8 @@ Do not add level-specific conditionals to the simulation engine. If a future des
 
 When validating clue quality, remember that bots only announce keys that are visible in their projection. A side-view bot reports a key when the claw shares its horizontal track; the rotated top view reports a key when the claw and key share the same screen cell. Keep those projected alignments intentional when authoring a solution.
 
+Dropped plushies use deterministic gravity: they settle at the floor height or one grid cell above the highest undelivered object at the same X/Y position. Author initial objects at stable integer heights when possible, and test any intended stacks through the canonical solution.
+
 ## Author and validate a solution
 
 Use the development overlay and `window.__PERSPECTIVE__` to inspect projections while experimenting. Once the intended route is known, store its exact actor/command sequence in `canonicalSolution`.

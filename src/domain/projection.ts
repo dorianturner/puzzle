@@ -154,6 +154,16 @@ export const diffProjection = (previous: Projection, current: Projection): Proje
     previousHeld === null && currentHeld !== null ? (afterById.get(currentHeld) ?? null) : null;
   const objectDropped =
     previousHeld !== null && currentHeld === null ? (beforeById.get(previousHeld) ?? null) : null;
+  const currentDropped =
+    previousHeld !== null && currentHeld === null ? (afterById.get(previousHeld) ?? null) : null;
+  const objectFell =
+    objectDropped &&
+    currentDropped &&
+    objectDropped.kind === "plushie" &&
+    current.view !== "XY" &&
+    currentDropped.vertical < objectDropped.vertical
+      ? currentDropped
+      : null;
   const deliveredObject = current.items.find(
     (item) =>
       item.delivered && previous.items.some((before) => before.id === item.id && !before.delivered),
@@ -171,6 +181,7 @@ export const diffProjection = (previous: Projection, current: Projection): Proje
     clawStateAfter: current.claw.state,
     objectGrabbed: objectGrabbed ?? null,
     objectDropped: objectDropped ?? null,
+    objectFell,
     deliveredObject: deliveredObject ?? null,
     alignedKeys,
     becameVisible,

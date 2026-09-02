@@ -29,6 +29,7 @@ export const generateBotObservations = (diff: ProjectionDiff, botView: ViewId): 
 
   if (diff.objectGrabbed) messages.push(describeGrab(diff.objectGrabbed));
   if (diff.objectDropped) messages.push(describeDrop(diff.objectDropped));
+  if (diff.objectFell) messages.push("The plushie fell into place.");
   if (diff.clawStateChanged && diff.clawStateAfter === "CLOSED_EMPTY") {
     messages.push("The claw closed, but nothing came with it.");
   } else if (diff.clawStateChanged && diff.clawStateAfter === "OPEN") {

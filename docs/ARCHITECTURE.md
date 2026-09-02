@@ -10,7 +10,7 @@ The application follows this one-way action pipeline:
 input -> parse/validate -> applyAction -> projections -> bot observations -> UI -> events
 ```
 
-`applyAction` clones the incoming state, applies one discrete command, resolves grab/drop behavior, unlocks views, and returns a new state. Animation is presentation-only and cannot change outcomes.
+`applyAction` clones the incoming state, applies one discrete command, resolves grab/drop behavior including deterministic gravity, unlocks views, and returns a new state. Animation is presentation-only and cannot change outcomes.
 
 ## Projections
 
@@ -22,7 +22,7 @@ input -> parse/validate -> applyAction -> projections -> bot observations -> UI 
 
 `LevelDefinition` contains machine bounds, chute and claw starts, object data, initial view assignments, view unlocks, and a canonical test solution. `LEVELS` is the menu registry and currently contains only Claw Machine. Future levels are added by registering another definition; the engine has no level-specific branches.
 
-Grid positions are integers. Initially, YOU use `XZ` and control Y, Bot A uses `YZ` and controls X, and Bot B uses `XY` and controls Z: each actor controls the axis collapsed by that actor's view. The XY projection presents Y horizontally and X vertically so YOU's movement appears left/right to both bots. A movement at a boundary is a deterministic no-op with a `claw_move_blocked` event. Grab candidates are sorted by configured priority, descending height, then ID. A key is delivered only when a held key is released at the chute.
+Grid positions are integers. Initially, YOU use `XZ` and control Y, Bot A uses `YZ` and controls X, and Bot B uses `XY` and controls Z: each actor controls the axis collapsed by that actor's view. The XY projection presents Y horizontally and X vertically so YOU's movement appears left/right to both bots. A movement at a boundary is a deterministic no-op with a `claw_move_blocked` event. Grab candidates are sorted by configured priority, descending height, then ID. Released plushies fall to the floor or one cell above the highest object at the same X/Y cell; released keys use the same gravity rule unless they enter the chute. A key is delivered only when a held key is released at the chute.
 
 ## Presentation
 

@@ -114,6 +114,8 @@ export interface ProjectionDiff {
   clawStateAfter: ClawState;
   objectGrabbed: ProjectedItem | null;
   objectDropped: ProjectedItem | null;
+  /** A dropped plushie visibly moved downward in this projection. */
+  objectFell: ProjectedItem | null;
   deliveredObject: ProjectedItem | null;
   /** Visible keys currently aligned with the claw in this projection. */
   alignedKeys: ProjectedItem[];
@@ -132,6 +134,7 @@ export type SimulationEventType =
   | "grab_started"
   | "object_grabbed"
   | "object_dropped"
+  | "object_fell"
   | "plushie_moved"
   | "key_revealed"
   | "key_grabbed"

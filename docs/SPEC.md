@@ -514,6 +514,12 @@ Avoid chaotic physics.
 
 Objects may move or shift when grabbed and dropped, but results must be deterministic.
 
+When a plushie is released, it falls along Z until it reaches the machine floor
+or one grid cell above the highest undelivered object at the same X/Y position.
+The fall is resolved in the simulation before projections and bot observations
+are generated. The domain records an `object_fell` event when the Z position
+decreases.
+
 ---
 
 # 17. Keys

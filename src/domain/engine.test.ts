@@ -35,6 +35,39 @@ describe("Claw Machine simulation", () => {
     expect(result.botMessages.bot_a.join(" ")).toContain("did not move on my screen");
   });
 
+  it("drops plushies to the floor with gravity and reports the fall", () => {
+    const state = createInitialState(clawMachineLevel);
+    const plushie = state.objects.find((object) => object.id === "plush-5")!;
+    state.clawPosition = { x: 4, y: 1, z: 6 };
+    plushie.position = { ...state.clawPosition };
+    state.heldObjectId = plushie.id;
+    state.clawState = "HOLDING_PLUSHIE";
+
+    const result = applyAction(state, { actor: "player", command: "GRAB" }, clawMachineLevel);
+    const dropped = result.state.objects.find((object) => object.id === plushie.id);
+
+    expect(dropped?.position).toEqual({ x: 4, y: 1, z: 0 });
+    expect(result.events.some((event) => event.type === "object_fell")).toBe(true);
+    expect(result.botMessages.bot_a).toContain("The plushie fell into place.");
+    expect(result.botMessages.bot_b).not.toContain("The plushie fell into place.");
+  });
+
+  it("settles a dropped plushie on top of an object at the same X/Y cell", () => {
+    const state = createInitialState(clawMachineLevel);
+    state.objects = state.objects.filter(
+      (object) => object.id === "key-2" || object.id === "plush-1",
+    );
+    const plushie = state.objects.find((object) => object.id === "plush-1")!;
+    state.clawPosition = { x: 2, y: 0, z: 6 };
+    plushie.position = { ...state.clawPosition };
+    state.heldObjectId = plushie.id;
+    state.clawState = "HOLDING_PLUSHIE";
+
+    const result = applyAction(state, { actor: "player", command: "GRAB" }, clawMachineLevel);
+
+    expect(result.state.objects.find((object) => object.id === plushie.id)?.position.z).toBe(1);
+  });
+
   it.each([
     {
       actor: "player" as const,

@@ -82,6 +82,30 @@ const updateHeldObject = (state: ClawMachineState): void => {
   if (heldObject) heldObject.position = { ...state.clawPosition };
 };
 
+/** Resolve a released object to the floor or the top of the highest object below it. */
+const settleObjectWithGravity = (
+  state: ClawMachineState,
+  level: LevelDefinition,
+  object: WorldObject,
+): Vec3 => {
+  const highestSupport = state.objects
+    .filter(
+      (candidate) =>
+        candidate.id !== object.id &&
+        !candidate.delivered &&
+        atSameHorizontalPosition(candidate.position, state.clawPosition),
+    )
+    .reduce(
+      (highest, candidate) => Math.max(highest, candidate.position.z),
+      level.bounds.z.min - 1,
+    );
+
+  return {
+    ...state.clawPosition,
+    z: Math.min(level.bounds.z.max, Math.max(level.bounds.z.min, highestSupport + 1)),
+  };
+};
+
 const maybeUnlockView = (
   state: ClawMachineState,
   level: LevelDefinition,
@@ -143,23 +167,38 @@ const executeGrab = (
   }
 
   const before = { ...heldObject.position };
-  heldObject.position = { ...state.clawPosition };
+  const isKeyAtChute =
+    heldObject.kind === "key" && atSameHorizontalPosition(state.clawPosition, level.chutePosition);
+  const after = isKeyAtChute
+    ? { ...state.clawPosition }
+    : settleObjectWithGravity(state, level, heldObject);
+  heldObject.position = after;
   state.heldObjectId = null;
   state.clawState = "OPEN";
   events.push(
     event("object_dropped", actionIndex, {
       objectId: heldObject.id,
       before,
-      after: heldObject.position,
+      after,
     }),
   );
 
   if (heldObject.kind === "plushie") {
+    if (before.z > after.z) {
+      events.push(
+        event("object_fell", actionIndex, {
+          objectId: heldObject.id,
+          before,
+          after,
+          details: { reason: "gravity" },
+        }),
+      );
+    }
     events.push(
       event("plushie_moved", actionIndex, {
         objectId: heldObject.id,
         before,
-        after: heldObject.position,
+        after,
       }),
     );
     return;
