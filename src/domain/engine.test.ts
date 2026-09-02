@@ -105,6 +105,26 @@ describe("Claw Machine simulation", () => {
     expect(botBMove.botMessages.bot_b[0]).toBe("The claw did not move on my screen.");
   });
 
+  it("tells bots when their projection aligns with a visible key", () => {
+    const state = createInitialState(clawMachineLevel);
+    state.clawPosition = { x: 8, y: 1, z: 6 };
+    const result = applyAction(state, { actor: "player", command: "RIGHT" }, clawMachineLevel);
+
+    expect(result.botMessages.bot_a).toContain("I'm over a key on my screen.");
+    expect(result.botMessages.bot_b).not.toContain("I'm over a key on my screen.");
+
+    const topState = createInitialState(clawMachineLevel);
+    topState.objects.find((object) => object.id === "plush-1")!.delivered = true;
+    topState.clawPosition = { x: 3, y: 1, z: 6 };
+    const topResult = applyAction(
+      topState,
+      { actor: "player", command: "RIGHT" },
+      clawMachineLevel,
+    );
+
+    expect(topResult.botMessages.bot_b).toContain("I'm over a key on my screen.");
+  });
+
   it("supports a future level definition without engine changes", () => {
     const futureLevel: LevelDefinition = {
       ...clawMachineLevel,

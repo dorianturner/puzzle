@@ -2,7 +2,7 @@
 
 ## Test layers
 
-Domain tests live beside the pure engine and cover state transitions, projections, occlusion, parser aliases, observations, telemetry, determinism, and future-level compatibility.
+Domain tests live beside the pure engine and cover state transitions, projections, occlusion, parser aliases, movement and key-alignment observations, telemetry, determinism, and future-level compatibility.
 
 Playwright tests in `tests/e2e` cover menu-to-game navigation, the three operator control banks, read-only bot output, reset, the debug API, and canonical completion.
 

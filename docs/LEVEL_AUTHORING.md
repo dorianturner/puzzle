@@ -12,6 +12,8 @@
 
 Do not add level-specific conditionals to the simulation engine. If a future design needs a new mechanic, add a documented generic rule or a versioned mechanic capability rather than branching on a level ID.
 
+When validating clue quality, remember that bots only announce keys that are visible in their projection. A side-view bot reports a key when the claw shares its horizontal track; the rotated top view reports a key when the claw and key share the same screen cell. Keep those projected alignments intentional when authoring a solution.
+
 ## Author and validate a solution
 
 Use the development overlay and `window.__PERSPECTIVE__` to inspect projections while experimenting. Once the intended route is known, store its exact actor/command sequence in `canonicalSolution`.

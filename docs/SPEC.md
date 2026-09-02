@@ -370,6 +370,17 @@ BOT B:
 The claw closed over something metallic.
 ```
 
+After every action, a bot must also report a visible key aligned with its screen:
+
+```text
+BOT A:
+I'm over a key on my screen.
+```
+
+For a side view, alignment means the claw and visible key share the screen's
+horizontal track. For the rotated top view, they must share the same screen
+cell. A bot must not report an occluded or hidden key as aligned.
+
 Bots should describe only information reasonably visible from their own projection.
 
 They must not reveal:
@@ -662,7 +673,7 @@ Functions such as:
 
 ```text
 diffProjection(previous, current)
-generateBotObservation(diff)
+generateBotObservations(diff, botView)
 ```
 
 ## Presentation
@@ -916,6 +927,7 @@ YZ observer:
 Test:
 
 - movement;
+- visible key alignment;
 - occlusion;
 - revealing keys;
 - grabbing;

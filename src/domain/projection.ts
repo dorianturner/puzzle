@@ -123,6 +123,14 @@ export const projectToXY = (state: ClawMachineState): Projection => project(stat
 const sameScreenPosition = (a: ProjectedItem, b: ProjectedItem): boolean =>
   a.horizontal === b.horizontal && a.vertical === b.vertical;
 
+const isAlignedKey = (item: ProjectedItem, claw: Projection["claw"], view: ViewId): boolean =>
+  item.kind === "key" &&
+  item.visible &&
+  !item.held &&
+  !item.delivered &&
+  item.horizontal === claw.horizontal &&
+  (view !== "XY" || item.vertical === claw.vertical);
+
 /** Compare two projections without consulting hidden world coordinates. */
 export const diffProjection = (previous: Projection, current: Projection): ProjectionDiff => {
   const beforeById = new Map(previous.items.map((item) => [item.id, item]));
@@ -156,6 +164,9 @@ export const diffProjection = (previous: Projection, current: Projection): Proje
     (item) =>
       item.delivered && previous.items.some((before) => before.id === item.id && !before.delivered),
   );
+  const alignedKeys = current.items.filter((item) =>
+    isAlignedKey(item, current.claw, current.view),
+  );
 
   return {
     view: current.view,
@@ -167,6 +178,7 @@ export const diffProjection = (previous: Projection, current: Projection): Proje
     objectGrabbed: objectGrabbed ?? null,
     objectDropped: objectDropped ?? null,
     deliveredObject: deliveredObject ?? null,
+    alignedKeys,
     becameVisible,
     becameHidden,
     movedObjects,

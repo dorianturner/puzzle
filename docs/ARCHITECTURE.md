@@ -16,7 +16,7 @@ input -> parse/validate -> applyAction -> projections -> bot observations -> UI 
 
 `projectToXZ`, `projectToYZ`, and `projectToXY` map the same 3D positions onto horizontal, vertical, and collapsed-depth coordinates. Items sharing a projected cell are sorted by depth and stable ID; only the front item is marked visible. This gives bots an observation surface without giving them hidden coordinates.
 
-`diffProjection` compares two projections. `generateBotObservations` consumes only that diff and a bot view. Its templates deliberately use human-visible descriptions and never print coordinates, axis names, solutions, or hidden locations.
+`diffProjection` compares two projections and records visible keys aligned with the claw. Side views treat a shared horizontal track as alignment; the rotated top view requires the same screen cell. `generateBotObservations` consumes only that diff and a bot view, so bots can say “I'm over a key on my screen” without receiving hidden coordinates. Its templates never print coordinates, axis names, solutions, or hidden locations.
 
 ## Levels
 

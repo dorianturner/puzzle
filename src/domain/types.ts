@@ -115,6 +115,8 @@ export interface ProjectionDiff {
   objectGrabbed: ProjectedItem | null;
   objectDropped: ProjectedItem | null;
   deliveredObject: ProjectedItem | null;
+  /** Visible keys currently aligned with the claw in this projection. */
+  alignedKeys: ProjectedItem[];
   becameVisible: ProjectedItem[];
   becameHidden: ProjectedItem[];
   movedObjects: ProjectedItem[];

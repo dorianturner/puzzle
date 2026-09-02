@@ -25,6 +25,8 @@ export const generateBotObservations = (diff: ProjectionDiff, botView: ViewId): 
     messages.push("The claw did not move on my screen.");
   }
 
+  if (diff.alignedKeys.length > 0) messages.push("I'm over a key on my screen.");
+
   if (diff.objectGrabbed) messages.push(describeGrab(diff.objectGrabbed));
   if (diff.objectDropped) messages.push(describeDrop(diff.objectDropped));
   if (diff.clawStateChanged && diff.clawStateAfter === "CLOSED_EMPTY") {

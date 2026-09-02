@@ -51,4 +51,15 @@ describe("orthographic projections", () => {
     expect(xy.claw.vertical).toBe(2);
     expect(xy.claw.depth).toBe(4);
   });
+
+  it("reports side-track key alignment without exposing hidden depth", () => {
+    const state = createInitialState(clawMachineLevel);
+    state.clawPosition = { x: 8, y: 2, z: 6 };
+    const next = createInitialState(clawMachineLevel);
+    next.clawPosition = { x: 7, y: 2, z: 6 };
+
+    const diff = diffProjection(projectToYZ(state), projectToYZ(next));
+
+    expect(diff.alignedKeys.map((item) => item.id)).toEqual(["key-1"]);
+  });
 });

@@ -20,7 +20,8 @@ test.describe("Perspective gameplay", () => {
     await page.getByTestId("play-button").first().click();
     await page.getByTestId("bot-right").click();
 
-    await expect(page.getByTestId("bot-a-message").last()).toContainText("claw");
+    await expect(page.getByTestId("bot-a-message").filter({ hasText: "claw" })).toHaveCount(1);
+    await expect(page.getByTestId("bot-a-message").last()).toContainText("over a key");
     await expect(page.getByTestId("bot-b-message").last()).toContainText("claw");
   });
 
